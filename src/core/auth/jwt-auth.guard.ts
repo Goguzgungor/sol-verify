@@ -12,7 +12,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
       throw (
         err ||
         new UnauthorizedException({
-          error_code: "UNAUTHORIZED",
+          error_code: 'UNAUTHORIZED',
           message: "Lütfen giriş yapınız.",
         })
       );

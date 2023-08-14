@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MerchOrder {
+  id             Int          @id @default(autoincrement())
+  merchId        BigInt?
+  userId         Int?
+  orderStartAt   DateTime?    @db.Timestamp(6)
+  orderConfirmAt DateTime?    @db.Timestamp(6)
+  merchXpCost    Int?
+  orderStatusId  Int?
+  OrderStatus    OrderStatus? @relation(fields: [orderStatusId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_MerchOrder_orderStatusId")
+  SolUser        SolUser?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_MerchOrder_userId")
+
+  @@index([orderStatusId], map: "Idx_MerchOrder_orderStatusId")
+}
+
+model OrderStatus {
+  id         Int          @id @default(autoincrement())
+  status     String?      @db.VarChar
+  MerchOrder MerchOrder[]
+}
+
+model SolUser {
+  id              Int          @id @default(autoincrement())
+  totalXp         Int?
+  spentXp         Int?
+  createdAt       DateTime?    @db.Timestamp(6)
+  lastOperationAt DateTime?    @db.Timestamp(6)
+  publicId        String?      @db.VarChar
+  MerchOrder      MerchOrder[]
+}

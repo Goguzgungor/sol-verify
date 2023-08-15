@@ -53,7 +53,7 @@ export class AppService {
     await this.dbService.merchOrder.createMany({data:merchData});
 
   }
-  async updateUserSpent(userId:number,spentXp:number,totalXp:number){
+  async updateUserSpent(userId:number,totalXp:number,spentXp:number){
     return await this.dbService.solUser.update({
       data:{spentXp:spentXp,totalXp:totalXp},where:{id:userId} 
     })

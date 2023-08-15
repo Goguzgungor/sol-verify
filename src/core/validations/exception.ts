@@ -32,3 +32,15 @@ export class HttpError extends HttpException {
     );
   }
 }
+
+export class CustomHttpException extends HttpException {
+  constructor(status: number, message: string) {
+    super(
+      {
+        status: status,
+        message: message,
+      },
+      status,
+    );
+  }
+}

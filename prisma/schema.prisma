@@ -15,6 +15,7 @@ model MerchOrder {
   orderConfirmAt DateTime?    @db.Timestamp(6)
   merchXpCost    Int?
   orderStatusId  Int?
+  orderId        BigInt?
   OrderStatus    OrderStatus? @relation(fields: [orderStatusId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_MerchOrder_orderStatusId")
   SolUser        SolUser?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_MerchOrder_userId")
 

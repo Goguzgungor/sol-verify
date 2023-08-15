@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsOptional, IsInt, IsDate } from 'class-validator';
 import { example_key_values } from "src/core/test_constant/example_value";
 
 export class CheckXpDto {
@@ -42,12 +42,37 @@ export class FraudCheckXpDto {
     @IsNumber()
     @IsNotEmpty()
     totalXp: number;
-    
-    
-    @ApiProperty({ description: "orderStatusId  1 for /checkXp, 2 for /checkoutXp, 3 for /fraudcheckXP", example: 2})
+
+}
+export class FraudCheckIdXpDto {
+    @ApiProperty({ description: 'ID of the order', example: 1 })
+    @IsString()
+    @IsNotEmpty()
+    orderId: number;
+
+    @ApiProperty({ description: 'Solana wallet public key', example: example_key_values.publicKey })
+    @IsString()
+    @IsNotEmpty()
+    publicKey: string;
+
+    @ApiProperty({
+        description: 'Merch Dto', example: [{
+            xp: 100,
+            merchId: 1
+        }]
+    })
+    merch: MerchDto[]
+
+    @ApiProperty({ description: "Total Xp Cost", example: 100 })
     @IsNumber()
     @IsNotEmpty()
-    orderStatusId: number;
+    totalXp: number;
+    
+    
+    @ApiProperty({ description: "User's ıd", example: 2})
+    @IsNumber()
+    @IsNotEmpty()
+    userId: number;
 
 }
 
@@ -62,8 +87,33 @@ export class MerchDto {
     @IsNumber()
     @IsNotEmpty()
     merchId: number;
-
 }
+
+export class SolUserDto {
+    @IsOptional()
+    @IsInt()
+    id: number;
+  
+    @IsOptional()
+    @IsInt()
+    totalXp: number;
+  
+    @IsOptional()
+    @IsInt()
+    spentXp: number;
+  
+    @IsOptional()
+    @IsDate()
+    createdAt: Date;
+  
+    @IsOptional()
+    @IsDate()
+    lastOperationAt: Date;
+  
+    @IsOptional()
+    @IsString()
+    publicId: string;
+  }
 
 
 

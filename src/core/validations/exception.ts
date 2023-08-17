@@ -44,3 +44,15 @@ export class CustomHttpException extends HttpException {
     );
   }
 }
+export class CheckXpHttpException extends HttpException {
+  constructor(status: number, message: string,currentXp:number) {
+    super(
+      {
+        status: status,
+        message: message,
+        currentXp:currentXp
+      },
+      status,
+    );
+  }
+}

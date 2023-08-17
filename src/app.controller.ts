@@ -4,7 +4,7 @@ import { CheckXpDto, FraudCheckIdXpDto, FraudCheckXpDto, SolUserDto } from './ve
 import { MetaplexService } from './verifylogic/metaplex.service';
 import { example_key_values } from './core/test_constant/example_value';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CustomHttpException } from './core/validations/exception';
+import { CheckXpHttpException, CustomHttpException } from './core/validations/exception';
 import { HttpAdapterHost } from '@nestjs/core';
 
 @Controller()
@@ -26,7 +26,7 @@ export class AppController {
     let availableXp = numberedXp - user.spentXp;
     if (availableXp < checkXpDto.xp) {
       let message: string = `Current xp: ${availableXp} is NOT enough for items xp: ${checkXpDto.xp}`
-      throw new CustomHttpException(HttpStatus.BAD_REQUEST, message);
+      throw new CheckXpHttpException(HttpStatus.BAD_REQUEST, message,availableXp);
     }
     return {
       status: HttpStatus.OK,

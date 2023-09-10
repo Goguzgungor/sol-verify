@@ -40,6 +40,17 @@ export class AppController {
     }
   }
 
+  @Get('example') // Use a unique route for this endpoint and change to @Post
+  @ApiResponse({ status: 200, description: 'İlk end point' })
+  async example() {
+    return this.metaplexService.createNft();
+  }
+
+  @Get('updateExample') // Use a unique route for this endpoint and change to @Post
+  @ApiResponse({ status: 200, description: 'İlk end point' })
+  async updateExample() {
+    return this.metaplexService.updateNft();
+  }
 
   @Post('checkOutXp') // Use a unique route for this endpoint and change to @Post
   @ApiResponse({ status: 200, description: '2. check işleminin yapıldığı en point' })

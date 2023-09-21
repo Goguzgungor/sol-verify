@@ -21,7 +21,7 @@ import { CustomHttpException } from 'src/core/validations/exception';
 import axios from 'axios';
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata';
 import { CreateNFTDto } from './dto/createNFTDto';
-import { UpdateNftDto } from './dto/updateNftDto';
+import { JustUpdateNftSpendDto, UpdateNftDto } from './dto/updateNftDto';
 import { WalletManagerService } from '../walletmanaging/wallet.manager.service';
 import { GetCompanyNft, ManagerQueryDto, AttributeModel, CheckXpDto } from './dto/checkXpDto';
 import { get } from 'http';
@@ -74,7 +74,10 @@ export class MetaplexService {
   async getAttributes(url: string): Promise<any[]> {
     return (await axios.get(url)).data.attributes;
   }
-
+  
+  async getNftUriBody(url: string): Promise<any> {
+    return (await axios.get(url)).data;
+  }
   async getWalletsVoxvilNfts(publicKey: PublicKey) {
     const connection = new Connection('https://api.devnet.solana.com');
     const metaplex = new Metaplex(connection);
@@ -136,6 +139,42 @@ export class MetaplexService {
       },
     };
   }
+  async fraudCheckOnChainPayment(checkXpDto: CheckXpDto){
+    const companyItem :GetCompanyNft= {
+      company_name:checkXpDto.companyName,
+      publicKey:checkXpDto.publicKey
+    }
+    const nft = await this.getCompanysNFT(companyItem);
+    const xpStats = this.getTotalAndSpendXp(nft.metadata);
+    console.log(xpStats);
+    
+    const availableXp = Number(xpStats.currentXp) - Number(xpStats.spendXp) - Number(checkXpDto.xp);
+
+    if (availableXp < checkXpDto.xp) {
+      const message = `Current xp: ${availableXp} is NOT enough for items xp: ${checkXpDto.xp}`;
+      throw new CheckXpHttpException(
+        HttpStatus.BAD_REQUEST,
+        message,
+        availableXp,
+      );
+    }
+    const spendData : JustUpdateNftSpendDto = {
+      companyName:checkXpDto.companyName,
+      publicId:checkXpDto.publicKey,
+      spendXp:checkXpDto.xp.toString(),
+    }
+    const update= await this.justUpdateNftSpend(spendData);
+
+    return {
+      status: HttpStatus.OK,
+      message: `Transaction succeed. Available xp: ${availableXp}`,
+      data: {
+        availableXp: availableXp,
+        ordersXp: checkXpDto.xp,
+        publicKey: checkXpDto.publicKey,
+      },
+    };
+  }
 
   async getCompanysNFT(getCompanyNft:GetCompanyNft){
     const connection = new Connection('https://api.devnet.solana.com');
@@ -158,7 +197,6 @@ export class MetaplexService {
       if (
         (isValid.isValid || nft.updateAuthorityAddress.toBase58() === solona_offical_key) && (nft.symbol === getCompanyNft.company_name)
         ) {
-        console.log(nft.mintAddress);
          return {
           name: nft.name,
           mintAdress: nft.mintAddress.toBase58(),
@@ -321,19 +359,15 @@ export class MetaplexService {
           const mintAddress = new PublicKey(updateData.mintAdress);
 
           let nft = await metaplex.nfts().findByMint({ mintAddress });
-          
+          let nftbody =await this.getNftUriBody(nft.uri);
           const { uri: newUri } = await metaplex.nfts().uploadMetadata({
-            collection: {
-              name: 'VOXVIL3 COLLECTION',
-              family: 'VoxVil3',
-            },
-            name: 'VoxVil3 NFT',
-            description: 'VoxVil3 member NFT',
-            symbol: updateData.companyName,
-            imageName: updateData.companyName,
+            collection: nftbody.collection,
+            name: nftbody.name,
+            description: nftbody.description,
+            symbol: nftbody.symbol,
+            imageName: nftbody.imageName,
             external_url: 'https://voxvil3.com',
-            image:
-              'https://utfs.io/f/7a188f16-cd4a-4a98-8bc1-4979cce9c744_v3_kare_logo.png',
+            image:nftbody.image,
             attributes: [
               {
                 trait_type: 'XP',
@@ -384,6 +418,84 @@ export class MetaplexService {
     }else {
       throw new CustomHttpException(404, 'We cant found the manager');
     }
+  }
+
+
+  async justUpdateNftSpend(updateData: JustUpdateNftSpendDto) {
+      const connection = new Connection('https://api.devnet.solana.com');
+      const WALLET: Keypair = stringKeyToKeyPair((await this.walletManagerService.getSelecetedCompanysSecretKey(updateData.companyName)).secret_id);
+      const getcompObj: GetCompanyNft = {
+        company_name : updateData.companyName,
+        publicKey:updateData.publicId
+      };
+      const getintedNft = await this.getCompanysNFT(getcompObj);
+          const metaplex = Metaplex.make(connection)
+            .use(keypairIdentity(WALLET))
+            .use(
+              bundlrStorage({
+                address: 'https://devnet.bundlr.network',
+                providerUrl: 'https://api.devnet.solana.com',
+                timeout: 60000,
+              }),
+            );
+          const mintAddress = new PublicKey(getintedNft.mintAdress);
+
+          let nft = await metaplex.nfts().findByMint({ mintAddress });
+          let nftbody =await this.getNftUriBody(nft.uri);
+    
+          const { uri: newUri } = await metaplex.nfts().uploadMetadata({
+            collection: nftbody.collection,
+            name: nftbody.name,
+            description: nftbody.description,
+            symbol: nftbody.symbol,
+            imageName: nftbody.imageName,
+            external_url: 'https://voxvil3.com',
+            image:nftbody.image,
+            attributes: [
+              {
+                trait_type: 'XP',
+                value: nftbody.attributes[0].value,
+              },
+              {
+                trait_type: 'Writing XP',
+                value:  nftbody.attributes[1].value,
+              },
+              {
+                trait_type: 'Strategy XP',
+                value:  nftbody.attributes[2].value,
+              },
+              {
+                trait_type: 'Ops XP',
+                value:  nftbody.attributes[3].value,
+              },
+              {
+                trait_type: 'Design XP',
+                value:  nftbody.attributes[4].value,
+              },
+              {
+                trait_type: 'Dev XP',
+                value:  nftbody.attributes[5].value,
+              },
+              {
+                trait_type: 'Video XP',
+                value:  nftbody.attributes[6].value,
+              },
+              {
+                trait_type: 'Spend XP',
+                value:  (Number(updateData.spendXp)+ Number(nftbody.attributes[7].value)).toString(),
+              },
+            ],
+          });
+      
+          const update: UpdateNftOutput = await metaplex.nfts().update(
+            {
+              nftOrSft: nft,
+              name: 'VoxVil3 NFT',
+              uri: newUri,
+              sellerFeeBasisPoints: 0,
+            },
+            { commitment: 'finalized' },
+          );
   }
 
   // async mintNFT() {

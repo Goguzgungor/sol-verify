@@ -157,6 +157,14 @@ export class AppController {
   async getWalletsVoxvilNfts(@Param('publicKey') publicKey: string) {
     return await this.metaplexService.getWalletsVoxvilNfts(new PublicKey(publicKey));
   }
+  @Get('/getAllCompanies')
+  @ApiResponse({
+    status: 200,
+    description: 'Bizim kullanabileceğimiz nftleri getiren end point',
+  })
+  async getAllCompanies() {
+    return await this.walletManagerService.getAllCompanies();
+  }
 
 
   @Post('fraudcheckXP') // Use a unique route for this endpoint and change to @Post
@@ -165,40 +173,49 @@ export class AppController {
     description:
       'En son konuştuğumuz fraud check enpionti, itemlerin xplerini teker teker almak daha doğru olur diye düşündüm, total xp ise bütün xplerin toplamı olacak',
   })
-  @ApiBody({ type: FraudCheckIdXpDto }) // Specify the DTO class for the request body
+  @ApiBody({ type: FraudCheckXpDto }) // Specify the DTO class for the request body
   async fraudcheckXP(@Body() fraudcheckXpDto: FraudCheckXpDto) {
-    const xp: any = await this.metaplexService.findNftByPublic(
-      fraudcheckXpDto.publicKey,
-    );
-
-    const numberedXp = Number.parseInt(xp.value);
-    const user: SolUserDto = await this.appService.finduser(
-      fraudcheckXpDto.publicKey,
-    );
-    const availableXp = numberedXp - user.spentXp;
-    if (availableXp < fraudcheckXpDto.totalXp) {
-      const message = `Current xp: ${availableXp} is NOT enough for items xp: ${fraudcheckXpDto.totalXp}`;
-      throw new CustomHttpException(HttpStatus.BAD_REQUEST, message);
+    if (fraudcheckXpDto.companyName === 'TEAM') {
+      const xp: any = await this.metaplexService.findNftByPublic(
+        fraudcheckXpDto.publicKey,
+      );
+  
+      const numberedXp = Number.parseInt(xp.value);
+      const user: SolUserDto = await this.appService.finduser(
+        fraudcheckXpDto.publicKey,
+      );
+      const availableXp = numberedXp - user.spentXp;
+      if (availableXp < fraudcheckXpDto.totalXp) {
+        const message = `Current xp: ${availableXp} is NOT enough for items xp: ${fraudcheckXpDto.totalXp}`;
+        throw new CustomHttpException(HttpStatus.BAD_REQUEST, message);
+      }
+      await this.appService.updateMerchOrder(fraudcheckXpDto, user.id);
+      const newSpentXp = user.spentXp + fraudcheckXpDto.totalXp;
+      await this.appService.updateUserSpent(user.id, numberedXp, newSpentXp);
+      return {
+        status: HttpStatus.OK,
+        message: `You have spent ${fraudcheckXpDto.totalXp} xp and now you got ${
+          numberedXp - newSpentXp
+        } xp`,
+        data: {
+          availableXp: newSpentXp,
+          ordersXp: fraudcheckXpDto.totalXp,
+          userId: user.id,
+          publicKey: user.publicId,
+        },
+      };
     }
-    await this.appService.updateMerchOrder(fraudcheckXpDto, user.id);
-    const newSpentXp = user.spentXp + fraudcheckXpDto.totalXp;
-    await this.appService.updateUserSpent(user.id, numberedXp, newSpentXp);
-    return {
-      status: HttpStatus.OK,
-      message: `You have spent ${fraudcheckXpDto.totalXp} xp and now you got ${
-        numberedXp - newSpentXp
-      } xp`,
-      data: {
-        availableXp: newSpentXp,
-        ordersXp: fraudcheckXpDto.totalXp,
-        userId: user.id,
-        publicKey: user.publicId,
-      },
-    };
+    else{
+      const checkItem : CheckXpDto={
+        xp:fraudcheckXpDto.totalXp,
+        publicKey:fraudcheckXpDto.publicKey,
+        companyName:fraudcheckXpDto.companyName
+      } 
+     return this.metaplexService.fraudCheckOnChainPayment(checkItem);
+    }
+    
   }
-
-
-
+  
   @Post('/createCompanyAndManager')
   @ApiResponse({
     status: 200,
@@ -209,5 +226,7 @@ export class AppController {
   async createManagerWallet(@Body() dto:NewCompanyManagerDto){
     return this.walletManagerService.createNewCompanyManager(dto);
   }
+
+
 
 }

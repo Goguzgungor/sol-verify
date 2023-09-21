@@ -66,8 +66,7 @@ export class FraudCheckXpDto {
   @IsString()
   @ApiProperty({
     description: 'Company Symbol Name',
-    example: 'SPT',
-  })
+    example: 'SPT',})
   companyName: string;
 }
 export class FraudCheckIdXpDto {

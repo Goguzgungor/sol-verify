@@ -89,3 +89,22 @@ export class UpdateNftDto {
   })
   spendXp: string;
 }
+export class JustUpdateNftSpendDto {
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty({
+    description: 'Mint adress of the nft',
+    example: 'GhtsSryapHsVbVWLJC1NRH5uHRDwXiTkCbEPNU4NF8DG',
+  })
+  companyName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty({
+    description: 'Xp attribute',
+    example: '0',
+  })
+  spendXp: string;
+
+  publicId:string;
+}

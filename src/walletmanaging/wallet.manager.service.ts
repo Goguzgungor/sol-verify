@@ -62,7 +62,19 @@ export class WalletManagerService {
     }
     return wallet;
   }
-
+  
+  async getAllCompanies() {
+    const companys = await this.dbService.managerwallets.findMany({select:{
+      id:true,
+      company_name:true,
+      companyfull_name:true,
+      public_id:true
+    }});
+    if (!companys) {
+      throw new NotFoundException(`Cüzdan bulunamadı`);
+    }
+    return companys;
+  }
   // Cüzdanı güncelle
   async updateWallet(walletId: number, walletData: ManagerWalletDto): Promise<ManagerWalletDto> {
     return await this.dbService.managerwallets.update({where:{
@@ -140,6 +152,16 @@ export class WalletManagerService {
           public_id:true,
           company_name:true,
           companyfull_name:true
+        },where:{company_name:companyName}
+      }
+    );
+  }
+  async getSelecetedCompanysSecretKey(companyName:string){
+    return await this.dbService.managerwallets.findFirst(
+
+      {
+        select:{
+          secret_id:true
         },where:{company_name:companyName}
       }
     );

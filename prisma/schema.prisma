@@ -37,3 +37,13 @@ model SolUser {
   publicId        String?      @db.VarChar
   MerchOrder      MerchOrder[]
 }
+
+model Managerwallets {
+  id               Int      @id(map: "managerwallets_pkey") @default(autoincrement())
+  company_name     String   @db.VarChar(255)
+  created_at       DateTime @db.Timestamp(6)
+  password         String   @db.VarChar(255)
+  public_id        String   @unique(map: "managerwallets_public_id_key") @db.VarChar(255)
+  secret_id        String   @unique(map: "managerwallets_secret_id_key") @db.VarChar(255)
+  companyfull_name String?  @db.VarChar(255)
+}

@@ -47,3 +47,13 @@ model Managerwallets {
   secret_id        String   @unique(map: "managerwallets_secret_id_key") @db.VarChar(255)
   companyfull_name String?  @db.VarChar(255)
 }
+
+model voxuser {
+  id            BigInt    @id @default(autoincrement())
+  name          String?   @db.VarChar(255)
+  password      String?   @db.VarChar(255)
+  note          String?   @db.VarChar(255)
+  createdat     DateTime? @db.Date
+  companySymbol String?   @db.VarChar(20)
+  publickey     String?   @db.VarChar(255)
+}

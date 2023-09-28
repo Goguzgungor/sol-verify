@@ -20,19 +20,22 @@ import {
 import { CustomHttpException } from 'src/core/validations/exception';
 import axios from 'axios';
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata';
-import { CreateNFTDto } from './dto/createNFTDto';
-import { JustUpdateNftSpendDto, UpdateNftDto } from './dto/updateNftDto';
+import { CreateNFTDto } from '../dto/createNFTDto';
+import { JustUpdateNftSpendDto, UpdateNftDto } from '../dto/updateNftDto';
 import { WalletManagerService } from '../walletmanaging/wallet.manager.service';
-import { GetCompanyNft, ManagerQueryDto, AttributeModel, CheckXpDto } from './dto/checkXpDto';
+import { GetCompanyNft, ManagerQueryDto, AttributeModel, CheckXpDto } from '../dto/checkXpDto';
 import { get } from 'http';
 import { CheckXpHttpException } from '../core/validations/exception';
+
+import { VoxUserService } from '../user/voxuser.service';
+import { VoxUserDto } from 'src/dto/voxUserDto';
 
 @Injectable()
 export class MetaplexService {
 
-  constructor(private walletManagerService: WalletManagerService) {
+  constructor(private walletManagerService: WalletManagerService,private voxUserService:VoxUserService) {
     this.walletManagerService = walletManagerService;
-
+    this.voxUserService = voxUserService;
   }
   async findNftByPublic(publicKey: string) {
     const connection = new Connection(
@@ -235,6 +238,15 @@ export class MetaplexService {
   async createNft(createNFTDto: CreateNFTDto) {
     const manager = await this.walletManagerService.isManagerValid(createNFTDto.password, createNFTDto.companyName);
     if (manager.isValid) {
+      const userData : VoxUserDto = {
+        password: 'password',
+        publicKey: createNFTDto.publicKey,
+        name:createNFTDto.name,
+        note:createNFTDto.note,
+        companySymbol:createNFTDto.companyName
+      }
+      await this.voxUserService.createVoxUser(userData);
+
       const connection = new Connection('https://api.devnet.solana.com');
       const WALLET: Keypair = stringKeyToKeyPair(manager.secretId);
       const metaplex = Metaplex.make(connection)
@@ -325,11 +337,10 @@ export class MetaplexService {
         throw new Error('failed to confirm transaction');
       }
       const { mintAddress } = transactionBuilder.getContext();
-      console.log(`   Mint Success!🎉`);
-      console.log(mintAddress.toString());
-      console.log(
-        `   Minted NFT: https://explorer.solana.com/address/${mintAddress.toString()}?cluster=devnet`,
-      );
+      
+      
+      
+ 
       return {
         mintAddress: mintAddress,
         checkMint:

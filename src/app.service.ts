@@ -7,7 +7,7 @@ import {
   SolUserDto,
   FraudCheckXpDto,
   MerchDto,
-} from './verifylogic/dto/checkXpDto';
+} from './dto/checkXpDto';
 
 @Injectable()
 export class AppService {

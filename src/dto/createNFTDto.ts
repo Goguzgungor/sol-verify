@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { example_key_values } from '../../core/test_constant/example_value';
+import { example_key_values } from '../core/test_constant/example_value';
 
 export class CreateNFTDto {
   @IsNotEmpty()
@@ -27,6 +27,16 @@ export class CreateNFTDto {
     example: 'ALTC',
   })
   companyName: string;
+
+  @ApiProperty({ description: 'Name', example: 'John Doe' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+  
+  @ApiProperty({ description: 'Note', example: 'Additional information' })
+  @IsString()
+  @IsOptional()
+  note?: string;
 
   @IsNotEmpty()
   @IsString()

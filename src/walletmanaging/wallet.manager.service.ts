@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 
 import { DbService } from "../core/db/db.service"; // managerWalletDto'yu ekleyin
-import { ManagerQueryDto, ManagerWalletDto, NewCompanyManagerDto } from 'src/verifylogic/dto/checkXpDto';
+import { ManagerQueryDto, ManagerWalletDto, NewCompanyManagerDto } from 'src/dto/checkXpDto';
 import { stringKeyToKeyPair } from 'src/verifylogic/verifylogic';
 import { log } from 'console';
 import { Connection, Keypair } from '@solana/web3.js';

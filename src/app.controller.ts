@@ -8,7 +8,7 @@ import {
   ManagerWalletDto,
   NewCompanyManagerDto,
   SolUserDto,
-} from './verifylogic/dto/checkXpDto';
+} from './dto/checkXpDto';
 import { MetaplexService } from './verifylogic/metaplex.service';
 import { example_key_values } from './core/test_constant/example_value';
 import { ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -17,8 +17,8 @@ import {
   CustomHttpException,
 } from './core/validations/exception';
 import { HttpAdapterHost } from '@nestjs/core';
-import { CreateNFTDto } from './verifylogic/dto/createNFTDto';
-import { UpdateNftDto } from './verifylogic/dto/updateNftDto';
+import { CreateNFTDto } from './dto/createNFTDto';
+import { UpdateNftDto } from './dto/updateNftDto';
 import { PublicKey } from '@solana/web3.js';
 import { WalletManagerService } from './walletmanaging/wallet.manager.service';
 import { toCandyGuard } from '@metaplex-foundation/js';
@@ -92,12 +92,16 @@ export class AppController {
     return this.metaplexService.getCompanysNFT(getCompanyNft);
   }
 
+  
   @Post('/updateNFT') // Use a unique route for this endpoint and change to @Post
   @ApiBody({ type: UpdateNftDto }) // Specify the DTO class for the request body
   @ApiResponse({ status: 200, description: 'NFT güncelleyen end point' })
   async updateNft(@Body() updateNftDto: UpdateNftDto) {
     return this.metaplexService.updateNft(updateNftDto);
   }
+
+
+  
 
   @Post('checkOutXp') // Use a unique route for this endpoint and change to @Post
   @ApiResponse({

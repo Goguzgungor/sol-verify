@@ -75,7 +75,7 @@ export class MetaplexService {
     return (await axios.get(url)).data.attributes[0];
   }
   async getAttributes(url: string): Promise<any[]> {
-    return (await axios.get(url)).data.attributes;
+    return (await axios.get(url)).data;
   }
   
   async getNftUriBody(url: string): Promise<any> {
@@ -91,6 +91,8 @@ export class MetaplexService {
     });
     for (let i = 0; i < nfts.length; i++) {
       const nft = nfts[i] as Metadata;;
+      console.log(nft);
+      
       const checkManager: ManagerQueryDto = {
         public_id: nft.updateAuthorityAddress.toBase58(),
         company_name: nft.symbol,
@@ -100,12 +102,14 @@ export class MetaplexService {
       if (
           isValid.isValid || nft.updateAuthorityAddress.toBase58() === solona_offical_key
       ) {
+        const getdatas = await this.getAttributes(nft.uri);
         const object = {
           name: nft.name,
           mintAdress: nft.mintAddress,
           companyName: nft.symbol,
           companyFullName:isValid.companyFullName,
-          metadata: await this.getAttributes(nft.uri),
+          image: getdatas['image'],
+          metadata: getdatas['attributes'],
         };
         tempList.push(object);
       }
@@ -196,16 +200,19 @@ export class MetaplexService {
       };
       const isValid = await this.walletManagerService.checkCompanyNft(checkManager);
       
+      console.log(nft);
       
       if (
         (isValid.isValid || nft.updateAuthorityAddress.toBase58() === solona_offical_key) && (nft.symbol === getCompanyNft.company_name)
         ) {
+          const getdatas = await this.getAttributes(nft.uri);
          return {
           name: nft.name,
           mintAdress: nft.mintAddress.toBase58(),
           companyName: nft.symbol,
           companyFullName:isValid.companyFullName,
-          metadata: await this.getAttributes(nft.uri),
+          image: getdatas['image'],
+          metadata: getdatas['attributes']
         };
       }
     }
